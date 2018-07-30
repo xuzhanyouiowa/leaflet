@@ -1,0 +1,51 @@
+---
+title: "Week 2 Assignment 1 for DDP"
+author: "Zhanyou Xu"                           
+date: "7/28/2018"
+output:
+  html_document: default
+  pdf_document: default
+  word_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(pacman)
+p_load(leaflet, dplyr, sp)
+```
+
+```{r}
+# read in the data download from 
+# https://mockaroo.com/
+data = read.csv("MOCK_DATA_zhanyou.csv"); dim(data)
+
+table(data$country)
+data= data[complete.cases(data),]; dim(data)
+set.seed(100); data = data[sample(1:1000, 500),]
+data$long = as.numeric(data$long)
+data$lat = as.numeric(data$lat)
+lat_col_index= grep("lat", names(data))
+long_index= grep("long", names(data))
+
+data.sp = SpatialPointsDataFrame(data[,c(long_index, lat_col_index)], data[,-c(long_index, lat_col_index)])
+
+Monsanto_icon = makeIcon(
+  iconUrl = "http://thebeljanskiblog.com/wp-content/uploads/2015/03/monsanto_logo.png",
+  iconWidth = 51*215/230, iconHeight = 51,
+  iconAnchorX = 31*215/230/2, iconAnchorY = 16
+)
+
+Monsanto_site = c("<a href= 'https://monsanto.com/'> Monsanto headquater at St. Louis, MO")
+
+# reference for different tiles: https://leaflet-extras.github.io/leaflet-providers/preview/
+m =leaflet() %>%
+  addProviderTiles("OpenTopoMap")%>%
+  addMarkers(lat = 41.709348, lng = -93.616634, icon = Monsanto_icon, popup=Monsanto_site)%>%
+  addMarkers(data = data, lat = ~lat,lng=~long, popup = ~paste("<h3>Hello!</h3>", "<b> Country Name: </b>", country, "<br>", "<b> City Name:</b>",city, sep=" "))%>%
+ # addPolylines(data = data, lat = ~lat, lng=~long, color = "red")%>%
+  addMarkers(data=data,lat = ~lat, lng=~long,  clusterOptions = markerClusterOptions())%>%
+  addCircles(data=data, lat = ~lat, lng=~long,  weight = 1, radius = 1000)
+m
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
